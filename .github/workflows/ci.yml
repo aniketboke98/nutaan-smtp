@@ -1,21 +1,56 @@
-name: 🚀 Deploy Nutaan SMTP Server
+name: Nutaan SMTP Pipeline
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose action to run"
+        required: true
+        default: build
+        type: choice
+        options:
+          - build
+          - deploy
 
 jobs:
-  deploy:
-    name: Deploy to VPS Server
+
+  build:
+    if: ${{ github.event.inputs.action == 'build' }}
+    name: Build Project
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
-      - name: 📥 Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2️⃣ Deploy via SSH
-      - name: 🚀 Deploy to Server via SSH
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build --if-present
+
+      - name: Run Tests
+        run: npm test --if-present
+
+      - name: Build Completed
+        run: echo "Build successful"
+
+
+  deploy:
+    if: ${{ github.event.inputs.action == 'deploy' }}
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
 
         with:
@@ -26,19 +61,8 @@ jobs:
           script_stop: true
 
           script: |
-            echo "📂 Switching to project directory"
             cd nutaan-smtp
-
-            echo "🔄 Pulling latest code"
             git pull origin main
-
-            echo "📦 Installing dependencies"
             npm install
-
-            echo "♻️ Restarting SMTP service"
             pm2 restart nutaan-smtp || pm2 start index.js --name nutaan-smtp
-
-            echo "💾 Saving PM2 process list"
             pm2 save
-
-            echo "✅ Deployment completed successfully"
