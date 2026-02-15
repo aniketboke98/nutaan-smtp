@@ -1,58 +1,23 @@
-name: Nutaan SMTP Pipeline
+name: 🚀 Deploy Nutaan SMTP Server
 
 on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: "Choose action to run"
-        required: true
-        default: build
-        type: choice
-        options:
-          - build
-          - deploy
+  push:
+    branches: [ main ]
 
 jobs:
-
-  build:
-    if: ${{ github.event.inputs.action == 'build' }}
-    name: Build Project
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Project
-        run: npm run build --if-present
-
-      - name: Run Tests
-        run: npm test --if-present
-
-      - name: Build Completed
-        run: echo "Build successful"
-
-
   deploy:
-    if: ${{ github.event.inputs.action == 'deploy' }}
-    name: Deploy to VPS
+    name: Deploy to VPS Server
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      # 1️⃣ Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
+      # 2️⃣ Deploy via SSH
+      - name: 🚀 Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.0
+
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -61,28 +26,19 @@ jobs:
           script_stop: true
 
           script: |
-            echo "Starting deployment"
-
-            if [ ! -d "nutaan-smtp" ]; then
-              echo "Project not found. Cloning..."
-              git clone https://github.com/aniketboke98/nutaan-smtp.git
-            fi
-
+            echo "📂 Switching to project directory"
             cd nutaan-smtp
 
-            echo "Pulling latest code"
-            git reset --hard
+            echo "🔄 Pulling latest code"
             git pull origin main
 
-            echo "Installing dependencies"
+            echo "📦 Installing dependencies"
             npm install
 
-            echo "Ensuring PM2 is installed"
-            command -v pm2 >/dev/null 2>&1 || npm install -g pm2
-
-            echo "Restarting application"
+            echo "♻️ Restarting SMTP service"
             pm2 restart nutaan-smtp || pm2 start index.js --name nutaan-smtp
 
+            echo "💾 Saving PM2 process list"
             pm2 save
 
-            echo "Deployment completed successfully"
+            echo "✅ Deployment completed successfully"
