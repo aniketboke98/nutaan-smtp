@@ -36,7 +36,7 @@ jobs:
             npm install
 
             echo "♻️ Restarting SMTP service"
-            pm2 restart nutaan-smtp || pm2 start index.js --name nutaan-smtp
+            pm2 restart nutaan-smtp || pm2 start app.js --name nutaan-smtp
 
             echo "💾 Saving PM2 process list"
             pm2 save
