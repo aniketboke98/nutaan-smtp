@@ -1,29 +1,24 @@
-name: CI Pipeline
+name: Deploy SMTP Server
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
         with:
-          node-version: 18
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Project
-        run: npm run build --if-present
-
-      - name: Run Tests
-        run: npm test
+          script: |
+            cd nutaan-smtp
+            git pull origin main
+            npm install
+            pm2 restart nutaan-smtp
