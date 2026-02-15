@@ -1,4 +1,4 @@
-name: 🚀 Deploy Nutaan SMTP Server
+name: Deploy Nutaan SMTP Server
 
 on:
   push:
@@ -10,12 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Deploy via SSH
-      - name: 🚀 Deploy to Server via SSH
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.0
 
         with:
@@ -26,19 +24,31 @@ jobs:
           script_stop: true
 
           script: |
-            echo "📂 Switching to project directory"
+            echo "Switching to project directory"
+
+            if [ ! -d "nutaan-smtp" ]; then
+              echo "Project not found, cloning repository"
+              git clone https://github.com/aniketboke98/nutaan-smtp.git
+            fi
+
             cd nutaan-smtp
 
-            echo "🔄 Pulling latest code"
+            echo "Resetting local changes"
+            git reset --hard
+
+            echo "Pulling latest code"
             git pull origin main
 
-            echo "📦 Installing dependencies"
+            echo "Installing dependencies"
             npm install
 
-            echo "♻️ Restarting SMTP service"
+            echo "Ensuring PM2 is installed"
+            command -v pm2 >/dev/null 2>&1 || npm install -g pm2
+
+            echo "Restarting SMTP service"
             pm2 restart nutaan-smtp || pm2 start app.js --name nutaan-smtp
 
-            echo "💾 Saving PM2 process list"
+            echo "Saving PM2 process list"
             pm2 save
 
-            echo "✅ Deployment completed successfully"
+            echo "Deployment completed successfully"
