@@ -1,0 +1,20 @@
+{
+  "name": "nutaan-mail-engine",
+  "version": "1.0.0",
+  "description": "Nutaan Mail Engine API",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "bull": "^4.10.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "nodemailer": "^6.9.0",
+    "winston": "^3.8.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.0"
+  }
+}
